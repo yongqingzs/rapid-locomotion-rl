@@ -35,7 +35,15 @@ class VelocityTrackingEasyEnv(LeggedRobot):
             cfg.commands.heading_command = False
 
         sim_params = gymapi.SimParams()
-        gymutil.parse_sim_config(vars(cfg.sim), sim_params)
+        def meta_to_dict(obj):
+            if hasattr(obj, "__dict__"):
+                return {k: meta_to_dict(v) for k, v in vars(obj).items()}
+            else:
+                return obj
+
+        sim_cfg = meta_to_dict(Cfg.sim)
+        gymutil.parse_sim_config(sim_cfg, sim_params)
+
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless, eval_cfg, initial_dynamics_dict)
 
 
@@ -67,4 +75,3 @@ class VelocityTrackingEasyEnv(LeggedRobot):
         self.reset_idx(torch.arange(self.num_envs, device=self.device))
         obs, _, _, _ = self.step(torch.zeros(self.num_envs, self.num_actions, device=self.device, requires_grad=False))
         return obs
-

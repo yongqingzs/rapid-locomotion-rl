@@ -3,11 +3,13 @@ def train_mc(headless=True):
     import isaacgym
     assert isaacgym
     import torch
+    from isaacgym import gymutil, gymapi
 
     from mini_gym.envs.base.legged_robot_config import Cfg
-    from mini_gym.envs.mini_cheetah.mini_cheetah_config import config_mini_cheetah
-    from mini_gym.envs.mini_cheetah.velocity_tracking import VelocityTrackingEasyEnv
-
+    # from mini_gym.envs.mini_cheetah.mini_cheetah_config import config_mini_cheetah
+    # from mini_gym.envs.mini_cheetah.velocity_tracking import VelocityTrackingEasyEnv
+    from mini_gym.envs.go1.go1_config import config_go1
+    from mini_gym.envs.go1.velocity_tracking.velocity_tracking_easy_env import VelocityTrackingEasyEnv
     from ml_logger import logger
 
     from mini_gym_learn.ppo import Runner
@@ -16,9 +18,9 @@ def train_mc(headless=True):
     from mini_gym_learn.ppo.ppo import PPO_Args
     from mini_gym_learn.ppo import RunnerArgs
 
-    config_mini_cheetah(Cfg)
+    config_go1(Cfg)
 
-    env = VelocityTrackingEasyEnv(sim_device='cuda:0', headless=False, cfg=Cfg)
+    env = VelocityTrackingEasyEnv(sim_device='cuda:0', headless=headless, cfg=Cfg)
 
     # log the experiment parameters
     logger.log_params(AC_Args=vars(AC_Args), PPO_Args=vars(PPO_Args), RunnerArgs=vars(RunnerArgs),
@@ -27,7 +29,7 @@ def train_mc(headless=True):
     env = HistoryWrapper(env)
     gpu_id = 0
     runner = Runner(env, device=f"cuda:{gpu_id}")
-    runner.learn(num_learning_iterations=4000, init_at_random_ep_len=True, eval_freq=100)
+    runner.learn(num_learning_iterations=5000, init_at_random_ep_len=True, eval_freq=100)
 
 
 if __name__ == '__main__':

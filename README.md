@@ -1,3 +1,43 @@
+# more
+fix1
+```bash
+pip install "importlib-metadata<5"
+```
+fix2
+```bash
+vim /opt/conda/envs/rapid/lib/python3.7/site-packages/ml_logger/server.py
+
+# before
+return shutil.copytree(
+    abs_src,
+    abs_target,
+    symlinks=symlinks,
+    dirs_exist_ok=exists_ok
+)
+
+# after
+if os.path.exists(abs_target):
+    shutil.rmtree(abs_target)
+return shutil.copytree(
+    abs_src,
+    abs_target,
+    symlinks=symlinks
+)
+```
+
+fix3
+```bash
+vim /workspace/rapid-locomotion-rl/mini_gym_learn/ppo/__init__.py
+
+# before
+logger.upload_file(file_path=adaptation_module_path, target_path=f"checkpoints/", once=False)
+logger.upload_file(file_path=body_path, target_path=f"checkpoints/", once=False)
+
+# after
+logger.upload_file(file_path=adaptation_module_path, target_path=f"checkpoints/")
+logger.upload_file(file_path=body_path, target_path=f"checkpoints/")
+```
+
 # Code for Rapid Locomotion via Reinforcement Learning
 
 This repository provides an implementation of the paper:

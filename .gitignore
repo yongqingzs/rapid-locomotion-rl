@@ -67,3 +67,4 @@ docker/rsc
 *.swp
 *.jit
 tmp
+**.pt

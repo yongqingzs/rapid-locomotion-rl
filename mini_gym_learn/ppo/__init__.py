@@ -5,7 +5,7 @@ from collections import deque
 
 import torch
 from ml_logger import logger
-from params_proto.neo_proto import PrefixProto
+from params_proto import PrefixProto
 import os
 import copy
 
@@ -238,8 +238,8 @@ class Runner:
                     traced_script_body_module = torch.jit.script(body_model)
                     traced_script_body_module.save(body_path)
 
-                    logger.upload_file(file_path=adaptation_module_path, target_path=f"checkpoints/", once=False)
-                    logger.upload_file(file_path=body_path, target_path=f"checkpoints/", once=False)
+                    logger.upload_file(file_path=adaptation_module_path, target_path=f"checkpoints/")
+                    logger.upload_file(file_path=body_path, target_path=f"checkpoints/")
 
             self.current_learning_iteration += num_learning_iterations
 
