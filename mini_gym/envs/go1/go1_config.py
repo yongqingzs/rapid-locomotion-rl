@@ -84,6 +84,7 @@ def config_go1(Cnfg: Union[Cfg, Meta]):
     _.lin_vel_x = [-0.6, 0.6]
     _.lin_vel_y = [-0.6, 0.6]
     _.ang_vel_yaw = [-1, 1]
+    _.max_forward_curriculum = 3.
 
     _ = Cnfg.domain_rand
     _.randomize_base_mass = True

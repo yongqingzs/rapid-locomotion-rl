@@ -51,7 +51,7 @@ class RunnerArgs(PrefixProto, cli=False):
     max_iterations = 1500  # number of policy updates
 
     # logging
-    save_interval = 400  # check for potential saves every this many iterations
+    save_interval = 200  # check for potential saves every this many iterations
     save_video_interval = 100
     log_freq = 10
 
@@ -210,8 +210,8 @@ class Runner:
                 mean_surrogate_loss=mean_surrogate_loss
             )
 
-            if RunnerArgs.save_video_interval:
-                self.log_video(it)
+            # if RunnerArgs.save_video_interval:
+            #     self.log_video(it)
 
             self.tot_timesteps += self.num_steps_per_env * self.env.num_envs
             if logger.every(RunnerArgs.log_freq, "iteration", start_on=1):

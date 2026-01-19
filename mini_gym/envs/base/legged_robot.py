@@ -260,6 +260,7 @@ class LeggedRobot(BaseTask):
         if self.cfg.commands.command_curriculum:
             self.extras["env_bins"] = torch.Tensor(self.env_command_bins)[:self.num_train_envs]
             self.extras["train/episode"]["command_area"] = np.sum(self.curriculum.weights) / self.curriculum.weights.shape[0]
+            self.extras["train/episode"]["max_command_x"] = self.cfg.command_ranges["lin_vel_x"][1]
         if self.cfg.commands.yaw_command_curriculum:
             self.extras["train/episode"]["max_command_yaw"] = self.cfg.command_ranges["ang_vel_yaw"][1]
             if self.eval_cfg is not None:
