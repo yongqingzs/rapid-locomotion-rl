@@ -236,6 +236,9 @@ class LeggedRobot(BaseTask):
         self.feet_air_time[env_ids] = 0.
         self.episode_length_buf[env_ids] = 0
         self.reset_buf[env_ids] = 1
+
+        for i in range(len(self.lag_buffer)):
+            self.lag_buffer[i][env_ids, :] = 0
         # fill extras
         train_env_ids = env_ids[env_ids < self.num_train_envs]
         if len(train_env_ids) > 0:
@@ -643,6 +646,13 @@ class LeggedRobot(BaseTask):
         # pd controller
         actions_scaled = actions[:, :12] * self.cfg.control.action_scale
         actions_scaled[:, [0, 3, 6, 9]] *= self.cfg.control.hip_scale_reduction  # scale down hip flexion range
+
+        if self.cfg.domain_rand.randomize_lag_timesteps:
+            self.lag_buffer = self.lag_buffer[1:] + [actions_scaled.clone()]
+            self.joint_pos_target = self.lag_buffer[0] + self.default_dof_pos
+        else:
+            self.joint_pos_target = actions_scaled + self.default_dof_pos
+
         control_type = self.cfg.control.control_type
         if control_type == "P":
             self.joint_pos_target = actions_scaled + self.default_dof_pos
@@ -930,6 +940,8 @@ class LeggedRobot(BaseTask):
 
         self.contact_forces = gymtorch.wrap_tensor(net_contact_forces).view(self.num_envs, -1,
                                                                             3)  # shape: num_envs, num_bodies, xyz axis
+
+        self.lag_buffer = [torch.zeros_like(self.dof_pos) for i in range(self.cfg.domain_rand.lag_timesteps+1)]
 
         # initialize some data used later on
         self.common_step_counter = 0
@@ -1589,3 +1601,24 @@ class LeggedRobot(BaseTask):
     #     # print(anneal_multiplier)
     #     return torch.sum(stance_state * torch.log(stance_state_prediction) + (1 - stance_state) * torch.log(
     #         1 - stance_state_prediction), dim=1) * anneal_multiplier
+
+    def _reward_feet_mirror(self):
+        # 惩罚 斜对称腿的关节位置偏差
+        diff1 = torch.sum(torch.square(self.dof_pos[:, [1, 2]] - self.dof_pos[:, [10, 11]]),dim=-1)
+        diff2 = torch.sum(torch.square(self.dof_pos[:, [4, 5]] - self.dof_pos[:, [7, 8]]),dim=-1)
+        return 0.5 * (diff1 + diff2)
+
+    def _reward_hip_pos0(self):
+        # 惩罚 hip关节（0,3,6,9）与默认位置的 偏差， (原地不动 或 原地旋转) 时惩罚系数为 5.0，其他为 1.0
+        hip_deviation = torch.sum(torch.abs(self.dof_pos[:, [0, 3, 6, 9]] - self.default_dof_pos[:, [0, 3, 6, 9]]), dim=1)
+        #   XY方向线速度 < 0.1 m/s (不论角速度大小，都会受到惩罚) 时，惩罚力度为 5.0
+        #   XY方向线速度 >= 0.1 m/s 时，惩罚力度为 1.0
+        return hip_deviation
+
+    def _reward_thigh_pose0(self):
+        thigh_deviation = torch.sum(torch.abs(self.dof_pos[:, [1, 4, 7, 10]] - self.default_dof_pos[:, [1, 4, 7, 10]]), dim=1)
+        return thigh_deviation
+    
+    def _reward_calf_pose0(self):
+        calf_deviation = torch.sum(torch.abs(self.dof_pos[:, [2, 5, 8, 11]] - self.default_dof_pos[:, [2, 5, 8, 11]]), dim=1)
+        return calf_deviation

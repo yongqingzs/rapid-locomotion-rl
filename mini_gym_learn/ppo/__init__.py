@@ -261,8 +261,8 @@ class Runner:
             traced_script_body_module = torch.jit.script(body_model)
             traced_script_body_module.save(body_path)
 
-            logger.upload_file(file_path=adaptation_module_path, target_path=f"checkpoints/", once=False)
-            logger.upload_file(file_path=body_path, target_path=f"checkpoints/", once=False)
+            logger.upload_file(file_path=adaptation_module_path, target_path=f"checkpoints/")
+            logger.upload_file(file_path=body_path, target_path=f"checkpoints/")
 
     def log_video(self, it):
         if it - self.last_recording_it >= RunnerArgs.save_video_interval:
